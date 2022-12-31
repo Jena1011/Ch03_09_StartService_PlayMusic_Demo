@@ -1,15 +1,14 @@
 package com.demo.android.ch03_09_startservice_playmusic_demo;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.telecom.ConnectionService;
 import android.view.View;
 import android.widget.Button;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,14 +33,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         Intent intent = new Intent(this, PlayMusicService.class);
-        bindService(intent,sConn,BIND_AUTO_CREATE);
+        bindService(intent, sConn, BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if(isBounded){
-            unbindService();
+        if (isBounded) {
+            unbindService(sConn);
         }
     }
 
@@ -50,7 +49,8 @@ public class MainActivity extends AppCompatActivity {
         conn = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
-                pService = ((PlayMusicService.ServiceBinder)service).getService();
+                PlayMusicService.ServiceBinder binder = (PlayMusicService.ServiceBinder) service;
+                pService = binder.getService();
                 isBounded = true;
             }
 
@@ -63,13 +63,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void playOrPauseMusic(View view) {
-
+        if (isPlaying) {
+            pService.pauseMusic();
+            bt_playOrPause.setText("Play");
+            isPlaying = false;
+        } else {
+            pService.playMusic();
+            bt_playOrPause.setText("Pause");
+            isPlaying = true;
+        }
     }
 
     public void stopMusic(View view) {
-        isPlaying = false;
+        pService.stopMusic();
         bt_playOrPause.setText("Play");
-        Intent intent = new Intent(this, PlayMusicService.class);
-        stopService(intent);
+        isPlaying = false;
     }
 }
